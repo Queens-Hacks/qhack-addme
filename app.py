@@ -15,9 +15,6 @@ slack_url = 'https://{teamname}.slack.com'.format(teamname=app.config['SLACK_TEA
 invite_url = '{}/admin/invites'.format(slack_url)
 gateway_url = '{}/account/gateways'.format(slack_url)
 crumb_re = r'type="hidden" name="crumb" value="(.*)" />'
-headers = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 6.2; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/32.0.1667.0 Safari/537.36',
-}
 
 invite_form = """
 <h1>join the qhack chat slack</h1>
@@ -35,24 +32,24 @@ IRC and XMPP config details will be at <a href="{gateway_url}">/account/gateways
 """.format(gateway_url=gateway_url)
 
 def login(session):
-    login_page_resp = session.get(slack_url, headers=headers)
+    login_page_resp = session.get(slack_url)
     assert login_page_resp.ok, 'could not load login page'
     crumb = search(crumb_re, login_page_resp.text).groups()[0]
     auth = {'signin': 1,
             'email': app.config['SLACK_EMAIL'],
             'password': app.config['SLACK_PASSWORD'],
             'crumb': crumb}
-    resp = session.post(slack_url, data=auth, headers=headers)
+    resp = session.post(slack_url, data=auth)
     assert resp.ok, 'could not log in'
 
 def post_invite(session, email):
-    invite_page_resp = session.get(invite_url, headers=headers)
+    invite_page_resp = session.get(invite_url)
     assert invite_page_resp.ok, 'could not load invite page'
     crumb = search(crumb_re, invite_page_resp.text).groups()[0]
     invite = {'invite': 1,
               'crumb': crumb,
               'emails': email}
-    resp = session.post(invite_url, data=invite, headers=headers)
+    resp = session.post(invite_url, data=invite)
     assert resp.ok, 'could not invite {}'.format(email)
 
 def invite(email):
